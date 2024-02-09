@@ -19,3 +19,5 @@ __pycache__/
 
 # Environment
 .env
+
+tile_downloader.log
