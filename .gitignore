@@ -21,3 +21,4 @@ __pycache__/
 .env
 
 tile_downloader.log
+skipped_tiles.log

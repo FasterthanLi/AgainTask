@@ -2,14 +2,20 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import sqlite3
-import os
 import threading
 from tqdm import tqdm
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Set up logging
+# Set up primary logging for general activity
 logging.basicConfig(filename='tile_downloader.log', level=logging.INFO, format='%(asctime)s %(message)s')
+
+# Set up a separate logger for already downloaded tiles
+skipped_tiles_logger = logging.getLogger("skipped_tiles")
+skipped_tiles_logger.setLevel(logging.INFO)
+skipped_tiles_handler = logging.FileHandler('skipped_tiles.log')
+skipped_tiles_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+skipped_tiles_logger.addHandler(skipped_tiles_handler)
 
 # Configuration
 url_template = "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png"
@@ -17,7 +23,7 @@ zoom_levels = (0, 3)  # Adjust as needed
 rate_limit = 100  # Adjust according to your needs
 mbtiles_file = r"C:\Users\1\Desktop\SQL\tiles.mbtiles"  # MBTiles file path
 user_agent = 'OpenStreetMapTileDownloader/1.0'  # Replace with your app's user agent
-max_threads = 3  # Adjust the number of threads
+max_threads = 5  # Adjust the number of threads
 
 # Set up a requests session with retries
 session = requests.Session()
@@ -106,7 +112,7 @@ def download_tile_rate_limited(zoom, x, y, session):
         with semaphore:  # Acquire a semaphore slot
             return download_tile(zoom, x, y, session)
     else:
-        logging.info(f"Tile already exists: zoom {zoom}, x {x}, y {y}, skipping download.")
+        skipped_tiles_logger.info(f"Skipped: Tile already exists: zoom {zoom}, x {x}, y {y}")
         return f"Skipped {zoom}/{x}/{y}"
 
 def download_tiles_to_mbtiles(url_template, zoom_levels, rate_limit, mbtiles_file, max_threads):
