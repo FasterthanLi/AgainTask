@@ -1,4 +1,3 @@
-# Execute the download function
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -14,11 +13,11 @@ logging.basicConfig(filename='tile_downloader.log', level=logging.INFO, format='
 
 # Configuration
 url_template = "https://tile.openstreetmap.org/{zoom}/{x}/{y}.png"
-zoom_levels = (0, 2)  # Adjust as needed
+zoom_levels = (0, 3)  # Adjust as needed
 rate_limit = 100  # Adjust according to your needs
 mbtiles_file = r"C:\Users\1\Desktop\SQL\tiles.mbtiles"  # MBTiles file path
 user_agent = 'OpenStreetMapTileDownloader/1.0'  # Replace with your app's user agent
-max_threads = 2  # Adjust the number of threads
+max_threads = 3  # Adjust the number of threads
 
 # Set up a requests session with retries
 session = requests.Session()
@@ -57,6 +56,20 @@ def initialize_mbtiles(db_path):
     except Exception as e:
         logging.error(f"Failed to initialize the MBTiles database: {e}")
 
+# Check if a tile exists in the MBTiles database
+def tile_exists(db_path, zoom, x, y):
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?",
+                    (zoom, x, 2**zoom - 1 - y))
+        exists = cur.fetchone()[0] > 0
+        conn.close()
+        return exists
+    except Exception as e:
+        logging.error(f"Failed to check tile existence: zoom {zoom}, x {x}, y {y}, error: {e}")
+        return False  # Assume tile does not exist in case of error
+
 # Save a tile to the MBTiles database
 def save_tile_to_mbtiles(db_path, zoom, x, y, tile_data):
     try:
@@ -84,15 +97,17 @@ def download_tile(zoom, x, y, session):
         logging.warning(f"Thread {thread_id}: Tile download failed: {tile_url}, status code: {response.status_code}")
         return f"Failed {tile_url}"
 
-
-
 # Semaphore to enforce rate limit
 semaphore = threading.Semaphore(rate_limit * max_threads)
 
 # Function to download a single tile with rate limiting
 def download_tile_rate_limited(zoom, x, y, session):
-    with semaphore:  # Acquire a semaphore slot
-        return download_tile(zoom, x, y, session)
+    if not tile_exists(mbtiles_file, zoom, x, y):  # Check if tile already exists
+        with semaphore:  # Acquire a semaphore slot
+            return download_tile(zoom, x, y, session)
+    else:
+        logging.info(f"Tile already exists: zoom {zoom}, x {x}, y {y}, skipping download.")
+        return f"Skipped {zoom}/{x}/{y}"
 
 def download_tiles_to_mbtiles(url_template, zoom_levels, rate_limit, mbtiles_file, max_threads):
     # Initialize the MBTiles file
@@ -131,6 +146,8 @@ def download_tiles_to_mbtiles(url_template, zoom_levels, rate_limit, mbtiles_fil
 
 # Execute the download function
 download_tiles_to_mbtiles(url_template, zoom_levels, rate_limit, mbtiles_file, max_threads)
+
+
 
 
 
