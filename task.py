@@ -196,7 +196,7 @@ if __name__ == "__main__":
         rate_limit=100,
         mbtiles_file=r"C:\Users\1\Desktop\SQL\tiles.mbtiles",
         user_agent='OpenStreetMapTileDownloader/1.0',
-        max_threads=3
+        max_threads=5
     )
 
     session_manager = SessionManager(config.user_agent)
@@ -209,9 +209,3 @@ if __name__ == "__main__":
         tile_downloader.download_tiles_to_mbtiles(geojson_path=r"C:\Users\1\Desktop\Job\central_park_section.geojson")
     except Exception as e:
         logging.error(f"An error occurred: {e}")
-    
-
-
-
-
-
