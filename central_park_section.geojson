@@ -1,0 +1,24 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "description": "Polygon coordinates for a specific area with corners labeled in order: Top Left, Top Right, Bottom Right, Bottom Left, back to Top Left to close the loop"
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-73.974187, 40.764941],
+              [-73.981900, 40.764941],
+              [-73.981900, 40.768094],
+              [-73.974187, 40.768094],
+              [-73.974187, 40.764941]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+  
