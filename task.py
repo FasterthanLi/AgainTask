@@ -194,7 +194,7 @@ if __name__ == "__main__":
         url_template="https://tile.openstreetmap.org/{zoom}/{x}/{y}.png",
         zoom_levels=(0, 3),
         rate_limit=100,
-        mbtiles_file=r"C:\Users\1\Desktop\SQL\tiles.mbtiles",
+        mbtiles_file=r"", # Put the actual path 
         user_agent='OpenStreetMapTileDownloader/1.0',
         max_threads=5
     )
@@ -206,6 +206,6 @@ if __name__ == "__main__":
         mbtiles_manager.initialize_db()  # Ensures that the database is initialized here
 
         tile_downloader = TileDownloader(config, session_manager, mbtiles_manager)
-        tile_downloader.download_tiles_to_mbtiles(geojson_path=r"C:\Users\1\Desktop\Job\central_park_section.geojson")
+        tile_downloader.download_tiles_to_mbtiles(geojson_path=r"") # Put the actual path 
     except Exception as e:
         logging.error(f"An error occurred: {e}")
